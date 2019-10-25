@@ -1,0 +1,45 @@
+name: "Test action-install-pulumi-cli"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - 'releases/*'
+
+jobs:
+  latest:
+    name: Test Latest Version Install
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - uses: actions/checkout@v1
+
+      - run: npm ci
+      - run: npm run build
+      - uses: ./
+
+      - run: pulumi version
+  specific:
+    name: Test Specific Version Install
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - uses: actions/checkout@v1
+
+      - run: npm ci
+      - run: npm run build
+      - uses: ./
+        with:
+          pulumi-version: 1.0.0
+
+      - run: pulumi version
