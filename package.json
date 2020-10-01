@@ -14,7 +14,7 @@
   "author": "Pulumi Corporation",
   "license": "Apache2.0",
   "dependencies": {
-    "@actions/core": "^1.2.0",
+    "@actions/core": "^1.2.6",
     "@actions/tool-cache": "^1.1.2",
     "mkdirp-promise": "^5.0.1",
     "node-fetch": "^2.6.1"
