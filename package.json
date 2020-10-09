@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "description": "Install the Pulumi CLI in a GitHub Actions build environment",
-  "main": "lib/main.js",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "package": "ncc build src/main.ts -o dist --source-map --license LICENSE"
   },
   "repository": {
     "type": "git",
@@ -20,6 +20,7 @@
     "node-fetch": "^2.6.1"
   },
   "devDependencies": {
+    "@vercel/ncc": "^0.24.0",
     "@types/node": "^12.11.6",
     "typescript": "^3.6.4"
   }
