@@ -59,6 +59,13 @@ async function run() {
         }
 
         core.addPath(path.join(destination, "bin"));
+
+        if (fs.existsSync(path.join(destination, "bin"))) {
+            core.debug(`Pulumi found in path`)
+        } else {
+            core.debug(`Pulumi not found`)
+        }
+
     } catch (error) {
         core.setFailed(error.message);
     }
