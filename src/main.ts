@@ -46,7 +46,7 @@ async function run() {
                 fs.renameSync(path.join(os.homedir(), "Pulumi"), path.join(os.homedir(), ".pulumi"));
                 break;
             default:
-                core.info(`test`)
+                core.info(platform)
                 let destinationPath = await mkdirp(destination);
                 core.info(`Successfully created ${destinationPath}`)
 
