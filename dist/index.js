@@ -2963,293 +2963,166 @@ function _unique(values) {
 
 /***/ }),
 
-/***/ 370:
+/***/ 126:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
+const fs = __webpack_require__(747);
+const path = __webpack_require__(622);
+const {promisify} = __webpack_require__(669);
+const semver = __webpack_require__(911);
 
-const mkdirp = __webpack_require__(858)
+const useNativeRecursiveOption = semver.satisfies(process.version, '>=10.12.0');
 
-module.exports = function (dir, opts) {
-  return new Promise((resolve, reject) => {
-    mkdirp(dir, opts, (err, made) => err === null ? resolve(made) : reject(err))
-  })
-}
+// https://github.com/nodejs/node/issues/8987
+// https://github.com/libuv/libuv/pull/1088
+const checkPath = pth => {
+	if (process.platform === 'win32') {
+		const pathHasInvalidWinCharacters = /[<>:"|?*]/.test(pth.replace(path.parse(pth).root, ''));
 
+		if (pathHasInvalidWinCharacters) {
+			const error = new Error(`Path contains invalid characters: ${pth}`);
+			error.code = 'EINVAL';
+			throw error;
+		}
+	}
+};
 
-/***/ }),
+const processOptions = options => {
+	// https://github.com/sindresorhus/make-dir/issues/18
+	const defaults = {
+		mode: 0o777,
+		fs
+	};
 
-/***/ 858:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+	return {
+		...defaults,
+		...options
+	};
+};
 
-const optsArg = __webpack_require__(853)
-const pathArg = __webpack_require__(930)
+const permissionError = pth => {
+	// This replicates the exception of `fs.mkdir` with native the
+	// `recusive` option when run on an invalid drive under Windows.
+	const error = new Error(`operation not permitted, mkdir '${pth}'`);
+	error.code = 'EPERM';
+	error.errno = -4048;
+	error.path = pth;
+	error.syscall = 'mkdir';
+	return error;
+};
 
-const {mkdirpNative, mkdirpNativeSync} = __webpack_require__(983)
-const {mkdirpManual, mkdirpManualSync} = __webpack_require__(356)
-const {useNative, useNativeSync} = __webpack_require__(518)
+const makeDir = async (input, options) => {
+	checkPath(input);
+	options = processOptions(options);
 
+	const mkdir = promisify(options.fs.mkdir);
+	const stat = promisify(options.fs.stat);
 
-const mkdirp = (path, opts) => {
-  path = pathArg(path)
-  opts = optsArg(opts)
-  return useNative(opts)
-    ? mkdirpNative(path, opts)
-    : mkdirpManual(path, opts)
-}
+	if (useNativeRecursiveOption && options.fs.mkdir === fs.mkdir) {
+		const pth = path.resolve(input);
 
-const mkdirpSync = (path, opts) => {
-  path = pathArg(path)
-  opts = optsArg(opts)
-  return useNativeSync(opts)
-    ? mkdirpNativeSync(path, opts)
-    : mkdirpManualSync(path, opts)
-}
+		await mkdir(pth, {
+			mode: options.mode,
+			recursive: true
+		});
 
-mkdirp.sync = mkdirpSync
-mkdirp.native = (path, opts) => mkdirpNative(pathArg(path), optsArg(opts))
-mkdirp.manual = (path, opts) => mkdirpManual(pathArg(path), optsArg(opts))
-mkdirp.nativeSync = (path, opts) => mkdirpNativeSync(pathArg(path), optsArg(opts))
-mkdirp.manualSync = (path, opts) => mkdirpManualSync(pathArg(path), optsArg(opts))
+		return pth;
+	}
 
-module.exports = mkdirp
+	const make = async pth => {
+		try {
+			await mkdir(pth, options.mode);
 
+			return pth;
+		} catch (error) {
+			if (error.code === 'EPERM') {
+				throw error;
+			}
 
-/***/ }),
+			if (error.code === 'ENOENT') {
+				if (path.dirname(pth) === pth) {
+					throw permissionError(pth);
+				}
 
-/***/ 992:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+				if (error.message.includes('null bytes')) {
+					throw error;
+				}
 
-const {dirname} = __webpack_require__(622)
+				await make(path.dirname(pth));
 
-const findMade = (opts, parent, path = undefined) => {
-  // we never want the 'made' return value to be a root directory
-  if (path === parent)
-    return Promise.resolve()
+				return make(pth);
+			}
 
-  return opts.statAsync(parent).then(
-    st => st.isDirectory() ? path : undefined, // will fail later
-    er => er.code === 'ENOENT'
-      ? findMade(opts, dirname(parent), parent)
-      : undefined
-  )
-}
+			try {
+				const stats = await stat(pth);
+				if (!stats.isDirectory()) {
+					throw new Error('The path is not a directory');
+				}
+			} catch (_) {
+				throw error;
+			}
 
-const findMadeSync = (opts, parent, path = undefined) => {
-  if (path === parent)
-    return undefined
+			return pth;
+		}
+	};
 
-  try {
-    return opts.statSync(parent).isDirectory() ? path : undefined
-  } catch (er) {
-    return er.code === 'ENOENT'
-      ? findMadeSync(opts, dirname(parent), parent)
-      : undefined
-  }
-}
+	return make(path.resolve(input));
+};
 
-module.exports = {findMade, findMadeSync}
+module.exports = makeDir;
 
+module.exports.sync = (input, options) => {
+	checkPath(input);
+	options = processOptions(options);
 
-/***/ }),
+	if (useNativeRecursiveOption && options.fs.mkdirSync === fs.mkdirSync) {
+		const pth = path.resolve(input);
 
-/***/ 356:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+		fs.mkdirSync(pth, {
+			mode: options.mode,
+			recursive: true
+		});
 
-const {dirname} = __webpack_require__(622)
+		return pth;
+	}
 
-const mkdirpManual = (path, opts, made) => {
-  opts.recursive = false
-  const parent = dirname(path)
-  if (parent === path) {
-    return opts.mkdirAsync(path, opts).catch(er => {
-      // swallowed by recursive implementation on posix systems
-      // any other error is a failure
-      if (er.code !== 'EISDIR')
-        throw er
-    })
-  }
+	const make = pth => {
+		try {
+			options.fs.mkdirSync(pth, options.mode);
+		} catch (error) {
+			if (error.code === 'EPERM') {
+				throw error;
+			}
 
-  return opts.mkdirAsync(path, opts).then(() => made || path, er => {
-    if (er.code === 'ENOENT')
-      return mkdirpManual(parent, opts)
-        .then(made => mkdirpManual(path, opts, made))
-    if (er.code !== 'EEXIST' && er.code !== 'EROFS')
-      throw er
-    return opts.statAsync(path).then(st => {
-      if (st.isDirectory())
-        return made
-      else
-        throw er
-    }, () => { throw er })
-  })
-}
+			if (error.code === 'ENOENT') {
+				if (path.dirname(pth) === pth) {
+					throw permissionError(pth);
+				}
 
-const mkdirpManualSync = (path, opts, made) => {
-  const parent = dirname(path)
-  opts.recursive = false
+				if (error.message.includes('null bytes')) {
+					throw error;
+				}
 
-  if (parent === path) {
-    try {
-      return opts.mkdirSync(path, opts)
-    } catch (er) {
-      // swallowed by recursive implementation on posix systems
-      // any other error is a failure
-      if (er.code !== 'EISDIR')
-        throw er
-      else
-        return
-    }
-  }
+				make(path.dirname(pth));
+				return make(pth);
+			}
 
-  try {
-    opts.mkdirSync(path, opts)
-    return made || path
-  } catch (er) {
-    if (er.code === 'ENOENT')
-      return mkdirpManualSync(path, opts, mkdirpManualSync(parent, opts, made))
-    if (er.code !== 'EEXIST' && er.code !== 'EROFS')
-      throw er
-    try {
-      if (!opts.statSync(path).isDirectory())
-        throw er
-    } catch (_) {
-      throw er
-    }
-  }
-}
+			try {
+				if (!options.fs.statSync(pth).isDirectory()) {
+					throw new Error('The path is not a directory');
+				}
+			} catch (_) {
+				throw error;
+			}
+		}
 
-module.exports = {mkdirpManual, mkdirpManualSync}
+		return pth;
+	};
 
-
-/***/ }),
-
-/***/ 983:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-const {dirname} = __webpack_require__(622)
-const {findMade, findMadeSync} = __webpack_require__(992)
-const {mkdirpManual, mkdirpManualSync} = __webpack_require__(356)
-
-const mkdirpNative = (path, opts) => {
-  opts.recursive = true
-  const parent = dirname(path)
-  if (parent === path)
-    return opts.mkdirAsync(path, opts)
-
-  return findMade(opts, path).then(made =>
-    opts.mkdirAsync(path, opts).then(() => made)
-    .catch(er => {
-      if (er.code === 'ENOENT')
-        return mkdirpManual(path, opts)
-      else
-        throw er
-    }))
-}
-
-const mkdirpNativeSync = (path, opts) => {
-  opts.recursive = true
-  const parent = dirname(path)
-  if (parent === path)
-    return opts.mkdirSync(path, opts)
-
-  const made = findMadeSync(opts, path)
-  try {
-    opts.mkdirSync(path, opts)
-    return made
-  } catch (er) {
-    if (er.code === 'ENOENT')
-      return mkdirpManualSync(path, opts)
-    else
-      throw er
-  }
-}
-
-module.exports = {mkdirpNative, mkdirpNativeSync}
-
-
-/***/ }),
-
-/***/ 853:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-const { promisify } = __webpack_require__(669)
-const fs = __webpack_require__(747)
-const optsArg = opts => {
-  if (!opts)
-    opts = { mode: 0o777, fs }
-  else if (typeof opts === 'object')
-    opts = { mode: 0o777, fs, ...opts }
-  else if (typeof opts === 'number')
-    opts = { mode: opts, fs }
-  else if (typeof opts === 'string')
-    opts = { mode: parseInt(opts, 8), fs }
-  else
-    throw new TypeError('invalid options argument')
-
-  opts.mkdir = opts.mkdir || opts.fs.mkdir || fs.mkdir
-  opts.mkdirAsync = promisify(opts.mkdir)
-  opts.stat = opts.stat || opts.fs.stat || fs.stat
-  opts.statAsync = promisify(opts.stat)
-  opts.statSync = opts.statSync || opts.fs.statSync || fs.statSync
-  opts.mkdirSync = opts.mkdirSync || opts.fs.mkdirSync || fs.mkdirSync
-  return opts
-}
-module.exports = optsArg
-
-
-/***/ }),
-
-/***/ 930:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-const platform = process.env.__TESTING_MKDIRP_PLATFORM__ || process.platform
-const { resolve, parse } = __webpack_require__(622)
-const pathArg = path => {
-  if (/\0/.test(path)) {
-    // simulate same failure that node raises
-    throw Object.assign(
-      new TypeError('path must be a string without null bytes'),
-      {
-        path,
-        code: 'ERR_INVALID_ARG_VALUE',
-      }
-    )
-  }
-
-  path = resolve(path)
-  if (platform === 'win32') {
-    const badWinChars = /[*|"<>?:]/
-    const {root} = parse(path)
-    if (badWinChars.test(path.substr(root.length))) {
-      throw Object.assign(new Error('Illegal characters in path.'), {
-        path,
-        code: 'EINVAL',
-      })
-    }
-  }
-
-  return path
-}
-module.exports = pathArg
-
-
-/***/ }),
-
-/***/ 518:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-const fs = __webpack_require__(747)
-
-const version = process.env.__TESTING_MKDIRP_NODE_VERSION__ || process.version
-const versArr = version.replace(/^v/, '').split('.')
-const hasNative = +versArr[0] > 10 || +versArr[0] === 10 && +versArr[1] >= 12
-
-const useNative = !hasNative ? () => false : opts => opts.mkdir === fs.mkdir
-const useNativeSync = !hasNative ? () => false : opts => opts.mkdirSync === fs.mkdirSync
-
-module.exports = {useNative, useNativeSync}
+	return make(path.resolve(input));
+};
 
 
 /***/ }),
@@ -6906,7 +6779,7 @@ const fs = __importStar(__webpack_require__(747));
 const os = __importStar(__webpack_require__(87));
 const path = __importStar(__webpack_require__(622));
 const fetch = __webpack_require__(467);
-const mkdirp = __webpack_require__(370);
+const makeDir = __webpack_require__(126);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -6942,7 +6815,7 @@ function run() {
                     fs.renameSync(path.join(os.homedir(), "Pulumi"), path.join(os.homedir(), ".pulumi"));
                     break;
                 default:
-                    let destinationPath = yield mkdirp(destination);
+                    let destinationPath = yield makeDir(destination);
                     core.info(`Successfully created ${destinationPath}`);
                     let extractedPath = yield tc.extractTar(downloaded, destination);
                     core.info(`Successfully extracted ${downloaded} to ${extractedPath}`);
@@ -6953,12 +6826,6 @@ function run() {
                     break;
             }
             core.addPath(path.join(destination, "bin"));
-            if (fs.existsSync(path.join(destination, "bin"))) {
-                core.info(`Pulumi found in path`);
-            }
-            else {
-                core.info(`Pulumi not found`);
-            }
         }
         catch (error) {
             core.setFailed(error.message);
