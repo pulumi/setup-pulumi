@@ -6,5 +6,5 @@ inputs:
     description: "Version of the Pulumi CLI to install, or 'latest' (default)."
     default: "latest"
 runs:
-  using: 'node14'
+  using: 'node12'
   main: 'dist/index.js'
