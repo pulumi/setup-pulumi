@@ -34,6 +34,8 @@ async function run() {
         const downloadUrl = `https://get.pulumi.com/releases/sdk/pulumi-v${version}-${platform}-x64.${platform == "windows" ? "zip" : "tar.gz"}`;
         const destination = path.join(os.homedir(), ".pulumi");
 
+        core.info(`Install destination is ${destination}`)
+
         const downloaded = await tc.downloadTool(downloadUrl);
 
         // The packages for Windows and *nix are structured differently - note the extraction paths for each.
