@@ -46,13 +46,13 @@ async function run() {
                 fs.renameSync(path.join(os.homedir(), "Pulumi"), path.join(os.homedir(), ".pulumi"));
                 break;
             default:
-                core.info(platform)
+                core.info("1")
                 let destinationPath = await mkdirp(destination);
                 core.info(`Successfully created ${destinationPath}`)
-
+                core.info("2")
                 let extractedPath = await tc.extractTar(downloaded, destination);
                 core.info(`Successfully extracted ${downloaded} to ${extractedPath}`)
-
+                core.info("3")
                 let oldPath = path.join(destination, "pulumi")
                 let newPath = path.join(destination, "bin")
                 fs.renameSync(oldPath, newPath);
