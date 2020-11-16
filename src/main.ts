@@ -5,7 +5,7 @@ import * as os from "os";
 import * as path from "path";
 
 const fetch = require("node-fetch");
-const mkdirp = require("mkdirp-promise");
+const makeDir = require('make-dir');
 
 async function run() {
     try {
@@ -47,7 +47,7 @@ async function run() {
                 break;
             default:
                 core.info("1")
-                let destinationPath = await mkdirp(destination);
+                let destinationPath = await makeDir(destination);
                 core.info(`Successfully created ${destinationPath}`)
                 core.info("2")
                 let extractedPath = await tc.extractTar(downloaded, destination);
