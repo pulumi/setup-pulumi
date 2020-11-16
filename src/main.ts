@@ -38,6 +38,8 @@ async function run() {
         const downloaded = await tc.downloadTool(downloadUrl);
         core.info(`successfully downloaded ${downloadUrl}`)
 
+        core.info(`test`)
+
         // The packages for Windows and *nix are structured differently - note the extraction paths for each.
         switch (platform) {
             case "windows":
@@ -59,12 +61,6 @@ async function run() {
         }
 
         core.addPath(path.join(destination, "bin"));
-
-        if (fs.existsSync(path.join(destination, "bin"))) {
-            core.info(`Pulumi found in path`)
-        } else {
-            core.info(`Pulumi not found`)
-        }
 
     } catch (error) {
         core.setFailed(error.message);
