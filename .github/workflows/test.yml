@@ -21,7 +21,7 @@ jobs:
       - run: npm ci
       - run: npm run package
       - uses: ./
-      - run: echo $PATH
+      - run: echo $GITHUB_PATH
       - run: pulumi version
   specific:
     name: Test Specific Version Install
