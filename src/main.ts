@@ -33,10 +33,10 @@ async function run() {
 
         const downloadUrl = `https://get.pulumi.com/releases/sdk/pulumi-v${version}-${platform}-x64.${platform == "windows" ? "zip" : "tar.gz"}`;
         const destination = path.join(os.homedir(), ".pulumi");
-
         core.info(`Install destination is ${destination}`)
 
         const downloaded = await tc.downloadTool(downloadUrl);
+        core.info(`successfully downloaded ${downloadUrl}`)
 
         // The packages for Windows and *nix are structured differently - note the extraction paths for each.
         switch (platform) {
@@ -45,9 +45,16 @@ async function run() {
                 fs.renameSync(path.join(os.homedir(), "Pulumi"), path.join(os.homedir(), ".pulumi"));
                 break;
             default:
-                await mkdirp(destination);
-                await tc.extractTar(downloaded, destination);
-                fs.renameSync(path.join(destination, "pulumi"), path.join(destination, "bin"));
+                let destinationPath = await mkdirp(destination);
+                core.info(`Successfully created ${destinationPath}`)
+
+                let extractedPath = await tc.extractTar(downloaded, destination);
+                core.info(`Successfully extracted ${downloaded} to ${extractedPath}`)
+
+                let oldPath = path.join(destination, "pulumi")
+                let newPath = path.join(destination, "bin")
+                fs.renameSync(oldPath, newPath);
+                core.info(`Successfully renamed ${oldPath} to ${newPath}`)
                 break;
         }
 

@@ -6934,6 +6934,7 @@ function run() {
             const destination = path.join(os.homedir(), ".pulumi");
             core.info(`Install destination is ${destination}`);
             const downloaded = yield tc.downloadTool(downloadUrl);
+            core.info(`successfully downloaded ${downloadUrl}`);
             // The packages for Windows and *nix are structured differently - note the extraction paths for each.
             switch (platform) {
                 case "windows":
@@ -6941,9 +6942,14 @@ function run() {
                     fs.renameSync(path.join(os.homedir(), "Pulumi"), path.join(os.homedir(), ".pulumi"));
                     break;
                 default:
-                    yield mkdirp(destination);
-                    yield tc.extractTar(downloaded, destination);
-                    fs.renameSync(path.join(destination, "pulumi"), path.join(destination, "bin"));
+                    let destinationPath = yield mkdirp(destination);
+                    core.info(`Successfully created ${destinationPath}`);
+                    let extractedPath = yield tc.extractTar(downloaded, destination);
+                    core.info(`Successfully extracted ${downloaded} to ${extractedPath}`);
+                    let oldPath = path.join(destination, "pulumi");
+                    let newPath = path.join(destination, "bin");
+                    fs.renameSync(oldPath, newPath);
+                    core.info(`Successfully renamed ${oldPath} to ${newPath}`);
                     break;
             }
             core.addPath(path.join(destination, "bin"));
