@@ -38,7 +38,6 @@ async function run() {
         const downloaded = await tc.downloadTool(downloadUrl);
         core.info(`successfully downloaded ${downloadUrl}`)
 
-        core.info(`test`)
 
         // The packages for Windows and *nix are structured differently - note the extraction paths for each.
         switch (platform) {
@@ -47,6 +46,7 @@ async function run() {
                 fs.renameSync(path.join(os.homedir(), "Pulumi"), path.join(os.homedir(), ".pulumi"));
                 break;
             default:
+                core.info(`test`)
                 let destinationPath = await mkdirp(destination);
                 core.info(`Successfully created ${destinationPath}`)
 
