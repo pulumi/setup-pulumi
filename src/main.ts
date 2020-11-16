@@ -5,7 +5,7 @@ import * as os from "os";
 import * as path from "path";
 
 const fetch = require("node-fetch");
-const mkdirp = require("mkdirp-promise");
+const makeDir = require('make-dir');
 
 async function run() {
     try {
@@ -38,6 +38,7 @@ async function run() {
         const downloaded = await tc.downloadTool(downloadUrl);
         core.info(`successfully downloaded ${downloadUrl}`)
 
+
         // The packages for Windows and *nix are structured differently - note the extraction paths for each.
         switch (platform) {
             case "windows":
@@ -45,12 +46,10 @@ async function run() {
                 fs.renameSync(path.join(os.homedir(), "Pulumi"), path.join(os.homedir(), ".pulumi"));
                 break;
             default:
-                let destinationPath = await mkdirp(destination);
+                let destinationPath = await makeDir(destination);
                 core.info(`Successfully created ${destinationPath}`)
-
                 let extractedPath = await tc.extractTar(downloaded, destination);
                 core.info(`Successfully extracted ${downloaded} to ${extractedPath}`)
-
                 let oldPath = path.join(destination, "pulumi")
                 let newPath = path.join(destination, "bin")
                 fs.renameSync(oldPath, newPath);
@@ -59,6 +58,7 @@ async function run() {
         }
 
         core.addPath(path.join(destination, "bin"));
+
     } catch (error) {
         core.setFailed(error.message);
     }

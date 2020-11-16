@@ -6953,6 +6953,12 @@ function run() {
                     break;
             }
             core.addPath(path.join(destination, "bin"));
+            if (fs.existsSync(path.join(destination, "bin"))) {
+                core.info(`Pulumi found in path`);
+            }
+            else {
+                core.info(`Pulumi not found`);
+            }
         }
         catch (error) {
             core.setFailed(error.message);
