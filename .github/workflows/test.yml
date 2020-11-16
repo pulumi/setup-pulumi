@@ -14,15 +14,13 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: '12.x'
-      - uses: actions/checkout@v1
-
+      - uses: actions/checkout@v2
       - run: npm ci
       - run: npm run build
       - uses: ./
-
       - run: pulumi version
   specific:
     name: Test Specific Version Install
@@ -31,15 +29,13 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: '12.x'
-      - uses: actions/checkout@v1
-
+      - uses: actions/checkout@v2
       - run: npm ci
       - run: npm run build
       - uses: ./
         with:
           pulumi-version: 1.0.0
-
       - run: pulumi version
