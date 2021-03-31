@@ -14,10 +14,10 @@ async function run() {
             darwin: 'darwin',
             win32: 'windows',
         };
-        
-        const runnerPlatform: keyof typeof platforms = os.platform();
 
-        if (runnerPlatform in platforms) {
+        const runnerPlatform = os.platform();
+
+        if (!(runnerPlatform in platforms)) {
           throw new Error(
             "Unsupported operating system - Pulumi CLI is only released for Darwin, Linux and Windows"
           );
