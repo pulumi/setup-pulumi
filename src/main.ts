@@ -9,21 +9,21 @@ const makeDir = require('make-dir');
 
 async function run() {
     try {
-        let platform = "";
-        switch (os.platform()) {
-            case "linux":
-                platform = "linux";
-                break;
-            case "darwin":
-                platform = "darwin";
-                break;
-            case "win32":
-                platform = "windows";
-                break;
-            default:
-                core.setFailed("Unsupported operating system - Pulumi CLI is only released for Darwin, Linux and Windows");
-                return;
+        const platforms = {
+            linux: 'linux',
+            darwin: 'darwin',
+            win32: 'windows',
+        };
+
+        const runnerPlatform = os.platform();
+
+        if (!(runnerPlatform in platforms)) {
+          throw new Error(
+            "Unsupported operating system - Pulumi CLI is only released for Darwin, Linux and Windows"
+          );
         }
+
+        const platform = platforms[runnerPlatform];
 
         let version = core.getInput("pulumi-version");
         if (version == "latest") {
