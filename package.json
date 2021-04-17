@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "description": "Install the Pulumi CLI in a GitHub Actions build environment",
-  "main": "lib/main.js",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "package": "ncc build src/main.ts -o dist --source-map --license LICENSE"
   },
   "repository": {
     "type": "git",
@@ -14,13 +14,15 @@
   "author": "Pulumi Corporation",
   "license": "Apache2.0",
   "dependencies": {
-    "@actions/core": "^1.2.0",
-    "@actions/tool-cache": "^1.1.2",
+    "@actions/core": "^1.2.6",
+    "@actions/tool-cache": "^1.6.1",
+    "make-dir": "^3.1.0",
     "mkdirp-promise": "^5.0.1",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.1"
   },
   "devDependencies": {
     "@types/node": "^12.11.6",
+    "@vercel/ncc": "^0.24.0",
     "typescript": "^3.6.4"
   }
 }

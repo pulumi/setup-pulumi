@@ -1,10 +1,13 @@
 name: "Install Pulumi CLI"
 description: "Install the Pulumi CLI in a GitHub Actions build environment"
-author: "James Nugent"
+author: "Pulumi Corporation"
 inputs:
   pulumi-version:
     description: "Version of the Pulumi CLI to install, or 'latest' (default)."
     default: "latest"
+branding:
+  icon: 'terminal'
+  color: 'purple'
 runs:
   using: 'node12'
-  main: 'lib/main.js'
+  main: 'dist/index.js'

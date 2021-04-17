@@ -17,12 +17,10 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: '12.x'
-      - uses: actions/checkout@v1
-
+      - uses: actions/checkout@v2
       - run: npm ci
-      - run: npm run build
+      - run: npm run package
       - uses: ./
-
       - run: pulumi version
   specific:
     name: Test Specific Version Install
@@ -34,12 +32,10 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: '12.x'
-      - uses: actions/checkout@v1
-
+      - uses: actions/checkout@v2
       - run: npm ci
-      - run: npm run build
+      - run: npm run package
       - uses: ./
         with:
           pulumi-version: 1.0.0
-
       - run: pulumi version
