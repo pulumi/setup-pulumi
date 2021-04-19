@@ -39,3 +39,5 @@ jobs:
         with:
           pulumi-version: 1.0.0
       - run: pulumi version
+      - uses: ./
+      - run: pulumi version

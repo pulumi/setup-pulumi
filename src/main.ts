@@ -6,6 +6,7 @@ import * as path from "path";
 
 const fetch = require("node-fetch");
 const makeDir = require('make-dir');
+const del = require('del');
 
 async function run() {
     try {
@@ -46,6 +47,10 @@ async function run() {
                 fs.renameSync(path.join(os.homedir(), "Pulumi"), path.join(os.homedir(), ".pulumi"));
                 break;
             default:
+                if (fs.existsSync(destination)) {
+                    const deletedDestinationPath = await del(destination);
+                    core.info(`Successfully deleted pre-existing ${deletedDestinationPath}`)
+                }
                 let destinationPath = await makeDir(destination);
                 core.info(`Successfully created ${destinationPath}`)
                 let extractedPath = await tc.extractTar(downloaded, destination);
