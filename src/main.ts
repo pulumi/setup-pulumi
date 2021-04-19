@@ -48,7 +48,7 @@ async function run() {
                 break;
             default:
                 if (fs.existsSync(destination)) {
-                    const deletedDestinationPath = await del(destination);
+                    const deletedDestinationPath = await del(destination, {force: true});
                     core.info(`Successfully deleted pre-existing ${deletedDestinationPath}`)
                 }
                 let destinationPath = await makeDir(destination);
