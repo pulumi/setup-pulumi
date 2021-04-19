@@ -1,12 +1,12 @@
 import * as core from "@actions/core";
 import * as tc from "@actions/tool-cache";
+import * as io from "@actions/io";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
 const fetch = require("node-fetch");
 const makeDir = require('make-dir');
-const del = require('del');
 
 async function run() {
     try {
@@ -36,8 +36,8 @@ async function run() {
         const destination = path.join(os.homedir(), ".pulumi");
         core.info(`Install destination is ${destination}`)
         if (fs.existsSync(destination)) {
-            const deletedDestinationPath = await del(destination, {force: true});
-            core.info(`Successfully deleted pre-existing ${deletedDestinationPath}`)
+            await io.rmRF(destination)
+            core.info(`Successfully deleted pre-existing ${destination}`)
         }
 
         const downloaded = await tc.downloadTool(downloadUrl);
