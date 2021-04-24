@@ -4,7 +4,12 @@ author: "Pulumi Corporation"
 inputs:
   pulumi-version:
     description: "Version of the Pulumi CLI to install, or 'latest' (default)."
+    required: true
     default: "latest"
+  github-token:
+    description: Token used to query pulumi versions
+    required: true
+    default: ${{ github.token }}
 branding:
   icon: 'terminal'
   color: 'purple'

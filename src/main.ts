@@ -4,6 +4,7 @@ import * as io from "@actions/io";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import { getSatisfyingVersion } from "./lib/get-version";
 
 const fetch = require("node-fetch");
 const makeDir = require('make-dir');
@@ -26,11 +27,23 @@ async function run() {
 
         const platform = platforms[runnerPlatform];
 
+        const configuredVersion = core.getInput("pulumi-version");
+
         let version = core.getInput("pulumi-version");
+        core.info(`Configured range: ${version}`);
+
         if (version == "latest") {
             const resp = await fetch("https://www.pulumi.com/latest-version");
             version = await resp.text();
+        } else {
+            const resp = await getSatisfyingVersion(version);
+            if (resp === null) {
+                throw new Error('Could not find a version that satisfied the version range');
+            }
+            version = resp;
         }
+
+        core.info(`Matched version: ${version}`);
 
         const downloadUrl = `https://get.pulumi.com/releases/sdk/pulumi-v${version}-${platform}-x64.${platform == "windows" ? "zip" : "tar.gz"}`;
         const destination = path.join(os.homedir(), ".pulumi");
