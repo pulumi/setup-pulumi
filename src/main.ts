@@ -28,7 +28,7 @@ async function run() {
 
         const range = core.getInput("pulumi-version");
         core.info(`Configured range: ${range}`);
-        const version = getVersion(range);
+        const version = await getVersion(range);
 
         core.info(`Matched version: ${version}`);
 
