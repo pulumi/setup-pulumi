@@ -37,7 +37,7 @@ jobs:
       - run: yarn package
       - uses: ./
         with:
-          pulumi-version: 2.14.0
+          pulumi-version: 2.5.0
       - run: pulumi version
   range:
     name: Test Range Version Install
