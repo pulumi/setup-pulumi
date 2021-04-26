@@ -1,36 +1,16 @@
+import * as playback from "jest-playback";
 import { getSatisfyingVersion, getVersion } from "../get-version";
-import nock from "nock";
-
-const nockBack = nock.back;
-nockBack.fixtures = `${__dirname}/../__fixtures__`;
-nockBack.setMode("record");
+playback.setup(__dirname);
 
 describe("get-version", () => {
+  process.env.GITHUB_TOKEN = process.env.GITHUB_TOKEN || "my-token";
   describe("latest", () => {
-    let nockDone: () => void;
-    beforeEach(async () => {
-      process.env.GITHUB_TOKEN = process.env.GITHUB_TOKEN || "my-token";
-      const nb = await nockBack("latest.json");
-      nockDone = nb.nockDone;
-    });
-    afterEach(async () => {
-      await nockDone();
-    });
     it("should get latest version", async () => {
       const version = await getVersion("latest");
       expect(version).toMatchInlineSnapshot(`"v3.1.0"`);
     });
   });
   describe("range versions", () => {
-    let nockDone: () => void;
-    beforeEach(async () => {
-      process.env.GITHUB_TOKEN = process.env.GITHUB_TOKEN || "my-token";
-      const nb = await nockBack("get-version.json");
-      nockDone = nb.nockDone;
-    });
-    afterEach(async () => {
-      await nockDone();
-    });
     it("should match ^3 versions", async () => {
       const version = await getSatisfyingVersion("^3");
       expect(version).toMatchInlineSnapshot(`"v3.1.0"`);
