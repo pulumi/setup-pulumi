@@ -10,6 +10,10 @@ const makeDir = require('make-dir');
 
 async function run() {
     try {
+        core.warning(
+            'Thank you for using pulumi/action-install-pulumi-cli Action. This action has been deprecated, please switch to pulumi/setup-pulumi.'
+        );
+
         const platforms = {
             linux: 'linux',
             darwin: 'darwin',

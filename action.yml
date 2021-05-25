@@ -4,6 +4,7 @@ author: "Pulumi Corporation"
 inputs:
   pulumi-version:
     description: "Version of the Pulumi CLI to install, or 'latest' (default)."
+    required: false
     default: "latest"
 branding:
   icon: 'terminal'
