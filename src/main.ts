@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as tc from "@actions/tool-cache";
+import * as io from "@actions/io";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -34,6 +35,10 @@ async function run() {
         const downloadUrl = `https://get.pulumi.com/releases/sdk/pulumi-v${version}-${platform}-x64.${platform == "windows" ? "zip" : "tar.gz"}`;
         const destination = path.join(os.homedir(), ".pulumi");
         core.info(`Install destination is ${destination}`)
+        if (fs.existsSync(destination)) {
+            await io.rmRF(destination)
+            core.info(`Successfully deleted pre-existing ${destination}`)
+        }
 
         const downloaded = await tc.downloadTool(downloadUrl);
         core.info(`successfully downloaded ${downloadUrl}`)
@@ -43,7 +48,7 @@ async function run() {
         switch (platform) {
             case "windows":
                 await tc.extractZip(downloaded, os.homedir());
-                fs.renameSync(path.join(os.homedir(), "Pulumi"), path.join(os.homedir(), ".pulumi"));
+                fs.renameSync(path.join(os.homedir(), "Pulumi"), destination);
                 break;
             default:
                 let destinationPath = await makeDir(destination);

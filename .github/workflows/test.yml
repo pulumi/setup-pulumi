@@ -39,3 +39,7 @@ jobs:
         with:
           pulumi-version: 1.0.0
       - run: pulumi version
+      - name: re-install with latest
+        uses: ./
+      - name: latest version
+        run: pulumi version

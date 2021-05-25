@@ -15,6 +15,7 @@
   "license": "Apache2.0",
   "dependencies": {
     "@actions/core": "^1.2.6",
+    "@actions/io": "^1.1.0",
     "@actions/tool-cache": "^1.6.1",
     "make-dir": "^3.1.0",
     "mkdirp-promise": "^5.0.1",
