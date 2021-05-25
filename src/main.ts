@@ -1,12 +1,10 @@
 import * as core from "@actions/core";
 import * as tc from "@actions/tool-cache";
 import * as io from "@actions/io";
-import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
 const fetch = require("node-fetch");
-const makeDir = require('make-dir');
 
 async function run() {
     try {
@@ -19,9 +17,9 @@ async function run() {
         const runnerPlatform = os.platform();
 
         if (!(runnerPlatform in platforms)) {
-          throw new Error(
-            "Unsupported operating system - Pulumi CLI is only released for Darwin, Linux and Windows"
-          );
+            throw new Error(
+                'Unsupported operating system - Pulumi CLI is only released for Darwin, Linux and Windows',
+            );
         }
 
         const platform = platforms[runnerPlatform];
@@ -33,37 +31,41 @@ async function run() {
         }
 
         const downloadUrl = `https://get.pulumi.com/releases/sdk/pulumi-v${version}-${platform}-x64.${platform == "windows" ? "zip" : "tar.gz"}`;
-        const destination = path.join(os.homedir(), ".pulumi");
+
+        const destination = path.join(os.homedir(), '.pulumi');
         core.info(`Install destination is ${destination}`)
-        if (fs.existsSync(destination)) {
-            await io.rmRF(destination)
-            core.info(`Successfully deleted pre-existing ${destination}`)
-        }
+
+        await io
+            .rmRF(destination)
+            .catch()
+            .then(() => {
+                core.info(`Successfully deleted pre-existing ${destination}`);
+            })
 
         const downloaded = await tc.downloadTool(downloadUrl);
         core.info(`successfully downloaded ${downloadUrl}`)
 
-
-        // The packages for Windows and *nix are structured differently - note the extraction paths for each.
         switch (platform) {
-            case "windows":
+            case "windows": {
                 await tc.extractZip(downloaded, os.homedir());
-                fs.renameSync(path.join(os.homedir(), "Pulumi"), destination);
+                await io.mv(path.join(os.homedir(), 'Pulumi'), path.join(os.homedir(), '.pulumi'));
                 break;
-            default:
-                let destinationPath = await makeDir(destination);
+            }
+            default: {
+                const destinationPath = await io.mkdirP(destination);
                 core.info(`Successfully created ${destinationPath}`)
-                let extractedPath = await tc.extractTar(downloaded, destination);
+                const extractedPath = await tc.extractTar(downloaded, destination);
                 core.info(`Successfully extracted ${downloaded} to ${extractedPath}`)
-                let oldPath = path.join(destination, "pulumi")
-                let newPath = path.join(destination, "bin")
-                fs.renameSync(oldPath, newPath);
+                const oldPath = path.join(destination, 'pulumi')
+                const newPath = path.join(destination, 'bin')
+                await io.mv(oldPath, newPath);
                 core.info(`Successfully renamed ${oldPath} to ${newPath}`)
                 break;
+            }
         }
 
-        core.addPath(path.join(destination, "bin"));
-
+        const cachedPath = await tc.cacheDir(path.join(destination, 'bin'), 'pulumi', version);
+        core.addPath(cachedPath);
     } catch (error) {
         core.setFailed(error.message);
     }

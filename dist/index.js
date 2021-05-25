@@ -1675,11 +1675,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const assert_1 = __webpack_require__(357);
-const fs = __webpack_require__(747);
-const path = __webpack_require__(622);
+const fs = __importStar(__webpack_require__(747));
+const path = __importStar(__webpack_require__(622));
 _a = fs.promises, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.readdir = _a.readdir, exports.readlink = _a.readlink, exports.rename = _a.rename, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
 exports.IS_WINDOWS = process.platform === 'win32';
 function exists(fsPath) {
@@ -1877,11 +1884,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const childProcess = __webpack_require__(129);
-const path = __webpack_require__(622);
+const childProcess = __importStar(__webpack_require__(129));
+const path = __importStar(__webpack_require__(622));
 const util_1 = __webpack_require__(669);
-const ioUtil = __webpack_require__(962);
+const ioUtil = __importStar(__webpack_require__(962));
 const exec = util_1.promisify(childProcess.exec);
 /**
  * Copies a file or folder.
@@ -2049,58 +2063,73 @@ function which(tool, check) {
                     throw new Error(`Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.`);
                 }
             }
+            return result;
         }
-        try {
-            // build the list of extensions to try
-            const extensions = [];
-            if (ioUtil.IS_WINDOWS && process.env.PATHEXT) {
-                for (const extension of process.env.PATHEXT.split(path.delimiter)) {
-                    if (extension) {
-                        extensions.push(extension);
-                    }
-                }
-            }
-            // if it's rooted, return it if exists. otherwise return empty.
-            if (ioUtil.isRooted(tool)) {
-                const filePath = yield ioUtil.tryGetExecutablePath(tool, extensions);
-                if (filePath) {
-                    return filePath;
-                }
-                return '';
-            }
-            // if any path separators, return empty
-            if (tool.includes('/') || (ioUtil.IS_WINDOWS && tool.includes('\\'))) {
-                return '';
-            }
-            // build the list of directories
-            //
-            // Note, technically "where" checks the current directory on Windows. From a toolkit perspective,
-            // it feels like we should not do this. Checking the current directory seems like more of a use
-            // case of a shell, and the which() function exposed by the toolkit should strive for consistency
-            // across platforms.
-            const directories = [];
-            if (process.env.PATH) {
-                for (const p of process.env.PATH.split(path.delimiter)) {
-                    if (p) {
-                        directories.push(p);
-                    }
-                }
-            }
-            // return the first match
-            for (const directory of directories) {
-                const filePath = yield ioUtil.tryGetExecutablePath(directory + path.sep + tool, extensions);
-                if (filePath) {
-                    return filePath;
-                }
-            }
-            return '';
+        const matches = yield findInPath(tool);
+        if (matches && matches.length > 0) {
+            return matches[0];
         }
-        catch (err) {
-            throw new Error(`which failed with message ${err.message}`);
-        }
+        return '';
     });
 }
 exports.which = which;
+/**
+ * Returns a list of all occurrences of the given tool on the system path.
+ *
+ * @returns   Promise<string[]>  the paths of the tool
+ */
+function findInPath(tool) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!tool) {
+            throw new Error("parameter 'tool' is required");
+        }
+        // build the list of extensions to try
+        const extensions = [];
+        if (ioUtil.IS_WINDOWS && process.env['PATHEXT']) {
+            for (const extension of process.env['PATHEXT'].split(path.delimiter)) {
+                if (extension) {
+                    extensions.push(extension);
+                }
+            }
+        }
+        // if it's rooted, return it if exists. otherwise return empty.
+        if (ioUtil.isRooted(tool)) {
+            const filePath = yield ioUtil.tryGetExecutablePath(tool, extensions);
+            if (filePath) {
+                return [filePath];
+            }
+            return [];
+        }
+        // if any path separators, return empty
+        if (tool.includes(path.sep)) {
+            return [];
+        }
+        // build the list of directories
+        //
+        // Note, technically "where" checks the current directory on Windows. From a toolkit perspective,
+        // it feels like we should not do this. Checking the current directory seems like more of a use
+        // case of a shell, and the which() function exposed by the toolkit should strive for consistency
+        // across platforms.
+        const directories = [];
+        if (process.env.PATH) {
+            for (const p of process.env.PATH.split(path.delimiter)) {
+                if (p) {
+                    directories.push(p);
+                }
+            }
+        }
+        // find all matches
+        const matches = [];
+        for (const directory of directories) {
+            const filePath = yield ioUtil.tryGetExecutablePath(path.join(directory, tool), extensions);
+            if (filePath) {
+                matches.push(filePath);
+            }
+        }
+        return matches;
+    });
+}
+exports.findInPath = findInPath;
 function readCopyOptions(options) {
     const force = options.force == null ? true : options.force;
     const recursive = Boolean(options.recursive);
@@ -2960,170 +2989,6 @@ function _unique(values) {
     return Array.from(new Set(values));
 }
 //# sourceMappingURL=tool-cache.js.map
-
-/***/ }),
-
-/***/ 126:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-const fs = __webpack_require__(747);
-const path = __webpack_require__(622);
-const {promisify} = __webpack_require__(669);
-const semver = __webpack_require__(911);
-
-const useNativeRecursiveOption = semver.satisfies(process.version, '>=10.12.0');
-
-// https://github.com/nodejs/node/issues/8987
-// https://github.com/libuv/libuv/pull/1088
-const checkPath = pth => {
-	if (process.platform === 'win32') {
-		const pathHasInvalidWinCharacters = /[<>:"|?*]/.test(pth.replace(path.parse(pth).root, ''));
-
-		if (pathHasInvalidWinCharacters) {
-			const error = new Error(`Path contains invalid characters: ${pth}`);
-			error.code = 'EINVAL';
-			throw error;
-		}
-	}
-};
-
-const processOptions = options => {
-	// https://github.com/sindresorhus/make-dir/issues/18
-	const defaults = {
-		mode: 0o777,
-		fs
-	};
-
-	return {
-		...defaults,
-		...options
-	};
-};
-
-const permissionError = pth => {
-	// This replicates the exception of `fs.mkdir` with native the
-	// `recusive` option when run on an invalid drive under Windows.
-	const error = new Error(`operation not permitted, mkdir '${pth}'`);
-	error.code = 'EPERM';
-	error.errno = -4048;
-	error.path = pth;
-	error.syscall = 'mkdir';
-	return error;
-};
-
-const makeDir = async (input, options) => {
-	checkPath(input);
-	options = processOptions(options);
-
-	const mkdir = promisify(options.fs.mkdir);
-	const stat = promisify(options.fs.stat);
-
-	if (useNativeRecursiveOption && options.fs.mkdir === fs.mkdir) {
-		const pth = path.resolve(input);
-
-		await mkdir(pth, {
-			mode: options.mode,
-			recursive: true
-		});
-
-		return pth;
-	}
-
-	const make = async pth => {
-		try {
-			await mkdir(pth, options.mode);
-
-			return pth;
-		} catch (error) {
-			if (error.code === 'EPERM') {
-				throw error;
-			}
-
-			if (error.code === 'ENOENT') {
-				if (path.dirname(pth) === pth) {
-					throw permissionError(pth);
-				}
-
-				if (error.message.includes('null bytes')) {
-					throw error;
-				}
-
-				await make(path.dirname(pth));
-
-				return make(pth);
-			}
-
-			try {
-				const stats = await stat(pth);
-				if (!stats.isDirectory()) {
-					throw new Error('The path is not a directory');
-				}
-			} catch (_) {
-				throw error;
-			}
-
-			return pth;
-		}
-	};
-
-	return make(path.resolve(input));
-};
-
-module.exports = makeDir;
-
-module.exports.sync = (input, options) => {
-	checkPath(input);
-	options = processOptions(options);
-
-	if (useNativeRecursiveOption && options.fs.mkdirSync === fs.mkdirSync) {
-		const pth = path.resolve(input);
-
-		fs.mkdirSync(pth, {
-			mode: options.mode,
-			recursive: true
-		});
-
-		return pth;
-	}
-
-	const make = pth => {
-		try {
-			options.fs.mkdirSync(pth, options.mode);
-		} catch (error) {
-			if (error.code === 'EPERM') {
-				throw error;
-			}
-
-			if (error.code === 'ENOENT') {
-				if (path.dirname(pth) === pth) {
-					throw permissionError(pth);
-				}
-
-				if (error.message.includes('null bytes')) {
-					throw error;
-				}
-
-				make(path.dirname(pth));
-				return make(pth);
-			}
-
-			try {
-				if (!options.fs.statSync(pth).isDirectory()) {
-					throw new Error('The path is not a directory');
-				}
-			} catch (_) {
-				throw error;
-			}
-		}
-
-		return pth;
-	};
-
-	return make(path.resolve(input));
-};
-
 
 /***/ }),
 
@@ -6775,57 +6640,59 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__webpack_require__(186));
 const tc = __importStar(__webpack_require__(784));
-const fs = __importStar(__webpack_require__(747));
+const io = __importStar(__webpack_require__(436));
 const os = __importStar(__webpack_require__(87));
 const path = __importStar(__webpack_require__(622));
 const fetch = __webpack_require__(467);
-const makeDir = __webpack_require__(126);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            let platform = "";
-            switch (os.platform()) {
-                case "linux":
-                    platform = "linux";
-                    break;
-                case "darwin":
-                    platform = "darwin";
-                    break;
-                case "win32":
-                    platform = "windows";
-                    break;
-                default:
-                    core.setFailed("Unsupported operating system - Pulumi CLI is only released for Darwin, Linux and Windows");
-                    return;
+            const platforms = {
+                linux: 'linux',
+                darwin: 'darwin',
+                win32: 'windows',
+            };
+            const runnerPlatform = os.platform();
+            if (!(runnerPlatform in platforms)) {
+                throw new Error('Unsupported operating system - Pulumi CLI is only released for Darwin, Linux and Windows');
             }
+            const platform = platforms[runnerPlatform];
             let version = core.getInput("pulumi-version");
             if (version == "latest") {
                 const resp = yield fetch("https://www.pulumi.com/latest-version");
                 version = yield resp.text();
             }
             const downloadUrl = `https://get.pulumi.com/releases/sdk/pulumi-v${version}-${platform}-x64.${platform == "windows" ? "zip" : "tar.gz"}`;
-            const destination = path.join(os.homedir(), ".pulumi");
+            const destination = path.join(os.homedir(), '.pulumi');
             core.info(`Install destination is ${destination}`);
+            yield io
+                .rmRF(destination)
+                .catch()
+                .then(() => {
+                core.info(`Successfully deleted pre-existing ${destination}`);
+            });
             const downloaded = yield tc.downloadTool(downloadUrl);
             core.info(`successfully downloaded ${downloadUrl}`);
-            // The packages for Windows and *nix are structured differently - note the extraction paths for each.
             switch (platform) {
-                case "windows":
+                case "windows": {
                     yield tc.extractZip(downloaded, os.homedir());
-                    fs.renameSync(path.join(os.homedir(), "Pulumi"), path.join(os.homedir(), ".pulumi"));
+                    yield io.mv(path.join(os.homedir(), 'Pulumi'), path.join(os.homedir(), '.pulumi'));
                     break;
-                default:
-                    let destinationPath = yield makeDir(destination);
+                }
+                default: {
+                    const destinationPath = yield io.mkdirP(destination);
                     core.info(`Successfully created ${destinationPath}`);
-                    let extractedPath = yield tc.extractTar(downloaded, destination);
+                    const extractedPath = yield tc.extractTar(downloaded, destination);
                     core.info(`Successfully extracted ${downloaded} to ${extractedPath}`);
-                    let oldPath = path.join(destination, "pulumi");
-                    let newPath = path.join(destination, "bin");
-                    fs.renameSync(oldPath, newPath);
+                    const oldPath = path.join(destination, 'pulumi');
+                    const newPath = path.join(destination, 'bin');
+                    yield io.mv(oldPath, newPath);
                     core.info(`Successfully renamed ${oldPath} to ${newPath}`);
                     break;
+                }
             }
-            core.addPath(path.join(destination, "bin"));
+            const cachedPath = yield tc.cacheDir(path.join(destination, 'bin'), 'pulumi', version);
+            core.addPath(cachedPath);
         }
         catch (error) {
             core.setFailed(error.message);
