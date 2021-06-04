@@ -1,38 +1,66 @@
 import * as core from "@actions/core";
-import { getOctokit } from "@actions/github";
+import got from 'got';
+import * as rt from 'runtypes';
 import { maxSatisfying } from "semver";
 const fetch = require("node-fetch");
 
-export async function getVersion(range: string): Promise<string> {
-  if (range == "latest") {
-    const resp = await fetch("https://www.pulumi.com/latest-version");
-    return `v${await resp.text()}`;
+const VersionRt = rt.Record({
+  version: rt.String,
+  downloads: rt.Record({
+    'linux-x64': rt.String,
+    'linux-arm64': rt.String,
+    'darwin-x64': rt.String,
+    'darwin-arm64': rt.String,
+    'windows-x64': rt.String,
+  }),
+  checksums: rt.String,
+  latest: rt.Boolean.optional(),
+});
+export type Version = rt.Static<typeof VersionRt>;
+const VersionsRt = rt.Array(VersionRt);
+
+export async function getVersionObject(range: string): Promise<Version> {
+  const result = await got(
+      'https://raw.githubusercontent.com/pulumi/docs/master/data/versions.json',
+      { responseType: 'json' },
+  );
+
+  const versions = VersionsRt.check(result.body);
+
+  if (range == 'latest') {
+    const latest = versions.find((v) => v.latest);
+    invariant(latest, 'expect a latest version to exists');
+    return latest;
   }
 
-  const resp = await getSatisfyingVersion(range);
+  const resp = maxSatisfying(
+      versions.map((v) => v.version),
+      range,
+  );
+
   if (resp === null) {
     throw new Error(
-      "Could not find a version that satisfied the version range"
+        'Could not find a version that satisfied the version range',
     );
   }
 
-  return resp;
+  const ver = versions.find((v) => v.version === resp);
+
+  if (!ver) {
+    throw new Error(
+        'Could not find a version that satisfied the version range',
+    );
+  }
+
+  return ver;
 }
 
-export async function getSatisfyingVersion(
-  range: string
-): Promise<string | null> {
-  const octokit = getOctokit(
-    core.getInput("github-token") || process.env.GITHUB_TOKEN || ""
-  );
-
-  const releases = await octokit.paginate(octokit.rest.repos.listTags, {
-    repo: "pulumi",
-    owner: "pulumi",
-    per_page: 100,
-  });
-
-  const versions: string[] = releases.map((r) => r.name);
-
-  return maxSatisfying(versions, range);
+/* eslint @typescript-eslint/explicit-module-boundary-types: 0 */
+export function invariant(
+    condition: unknown,
+    message?: string,
+): asserts condition {
+  if (!condition) {
+    throw new Error(message);
+  }
 }

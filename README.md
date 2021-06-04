@@ -10,14 +10,23 @@ Install the latest version of the Pulumi CLI:
 
 ```yaml
 - name: Install Pulumi CLI
-  uses: pulumi/action-install-pulumi-cli@v1.0.2
+  uses: pulumi/action-install-pulumi-cli@v1
 ```
 
 Install a specific version of the Pulumi CLI:
 
 ```yaml
 - name: Install pulumi
-  uses: pulumi/action-install-pulumi-cli@v1.0.2
+  uses: pulumi/action-install-pulumi-cli@v1
   with:
     pulumi-version: 1.4.0
+```
+
+Install a version that adheres to a semver range
+
+```yaml
+- name: Install pulumi
+  uses: pulumi/action-install-pulumi-cli@v1
+  with:
+    pulumi-version: ^3.0.0
 ```
