@@ -1,4 +1,4 @@
-# `install-pulumi-cli` GitHub Action
+# Setup GitHub Action
 
 This repository contains an action for use with GitHub Actions, which installs a specified version of  the `pulumi` CLI.
 
@@ -10,23 +10,29 @@ Install the latest version of the Pulumi CLI:
 
 ```yaml
 - name: Install Pulumi CLI
-  uses: pulumi/action-install-pulumi-cli@v1
+  uses: pulumi/setup-pulumi@v2
 ```
 
 Install a specific version of the Pulumi CLI:
 
 ```yaml
 - name: Install pulumi
-  uses: pulumi/action-install-pulumi-cli@v1
+  uses: pulumi/setup-pulumi@v2
   with:
-    pulumi-version: 1.4.0
+    pulumi-version: 3.3.0
 ```
 
 Install a version that adheres to a semver range
 
 ```yaml
 - name: Install pulumi
-  uses: pulumi/action-install-pulumi-cli@v1
+  uses: pulumi/setup-pulumi@v2
   with:
     pulumi-version: ^3.0.0
 ```
+
+## Configuration
+
+The action can be configured with the following arguments:
+
+- `pulumi-version` (optional) - The version of the Pulumi CLI to install. Default is `latest`. Accepts semver style values.

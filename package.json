@@ -1,8 +1,8 @@
 {
-  "name": "action-install-pulumi-cli",
+  "name": "setup-pulumi",
   "version": "0.0.0",
   "private": true,
-  "description": "Install the Pulumi CLI in a GitHub Actions build environment",
+  "description": "Setup the Pulumi CLI in a GitHub Actions build environment",
   "main": "dist/index.js",
   "scripts": {
     "package": "ncc build src/main.ts -o dist --source-map --license LICENSE",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pulumi/action-install-pulumi-cli.git"
+    "url": "git+https://github.com/pulumi/setup-pulumi.git"
   },
   "author": "Pulumi Corporation",
   "license": "Apache-2.0",

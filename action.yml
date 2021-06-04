@@ -1,5 +1,5 @@
-name: "Install Pulumi CLI"
-description: "Install the Pulumi CLI in a GitHub Actions build environment"
+name: "Setup Pulumi CLI"
+description: "Setup the Pulumi CLI in a GitHub Actions build environment"
 author: "Pulumi Corporation"
 inputs:
   pulumi-version:
