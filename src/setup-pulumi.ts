@@ -1,10 +1,15 @@
-import * as core from "@actions/core";
-import * as tc from "@actions/tool-cache";
 import * as fs from "fs";
 import * as os from "os";
-import * as io from '@actions/io';
 import * as path from "path";
+
+import * as core from "@actions/core";
+import * as tc from "@actions/tool-cache";
+import * as io from '@actions/io';
+
 import { getVersionObject } from "./lib/get-version";
+import { restoreCache } from "./cache-restore";
+
+const pkgName = "pulumi"
 
 async function run() {
     try {
@@ -30,7 +35,22 @@ async function run() {
 
         core.info(`Matched version: ${version}`);
 
+        // first see if package is in the toolcache (installed locally)
+        const toolcacheDir = tc.find(pkgName, version);
+        if (toolcacheDir) {
+          core.addPath(toolcacheDir);
+          core.info(`using ${pkgName} from toolcache (${toolcacheDir})`);
+          return;
+        }
+
         const destination = path.join(os.homedir(), ".pulumi");
+        // then try to restore package from the github action cache
+        const restored = await restoreCache(pkgName, path.join(destination, 'bin'), version);
+        if (restored) {
+          core.addPath(path.join(destination, 'bin'));
+          return;
+        }
+
         core.info(`Install destination is ${destination}`)
 
         await io
@@ -62,7 +82,7 @@ async function run() {
                 break;
         }
 
-        const cachedPath = await tc.cacheDir(path.join(destination, 'bin'), 'pulumi', version);
+        const cachedPath = await tc.cacheDir(path.join(destination, 'bin'), pkgName, version);
         core.addPath(cachedPath);
 
     } catch (error) {
