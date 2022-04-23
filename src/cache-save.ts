@@ -1,8 +1,6 @@
 import fs from "fs";
-
 import * as core from "@actions/core";
 import * as cache from "@actions/cache";
-
 import { State } from "./constants";
 import * as utils from "./cache-utils";
 

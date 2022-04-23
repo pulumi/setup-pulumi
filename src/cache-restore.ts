@@ -1,8 +1,6 @@
 import * as cache from "@actions/cache";
 import * as core from "@actions/core";
-
 import { State } from "./constants";
-
 import * as utils from "./cache-utils";
 
 export const restoreCache = async (
