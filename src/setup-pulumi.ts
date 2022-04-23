@@ -1,11 +1,8 @@
-import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-
 import * as core from "@actions/core";
 import * as tc from "@actions/tool-cache";
 import * as io from '@actions/io';
-
 import { getVersionObject } from "./lib/get-version";
 import { restoreCache } from "./cache-restore";
 
