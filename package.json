@@ -19,7 +19,7 @@
     "@actions/github": "^4.0.0",
     "@actions/io": "^1.1.0",
     "@actions/tool-cache": "^1.6.1",
-    "got": "^11.8.2",
+    "got": "^11.8.5",
     "jest-playback": "^3.0.0",
     "make-dir": "^3.1.0",
     "mkdirp-promise": "^5.0.1",
