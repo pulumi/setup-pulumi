@@ -14,10 +14,10 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
-          node-version: '14.x'
-      - uses: actions/checkout@v2
+          node-version: '16.x'
+      - uses: actions/checkout@v3
       - run: yarn install --frozen-lockfile --ignore-optional
       - run: yarn test
   latest:
@@ -27,10 +27,10 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
-          node-version: '14.x'
-      - uses: actions/checkout@v2
+          node-version: '16.x'
+      - uses: actions/checkout@v3
       - run: yarn install --frozen-lockfile --ignore-optional
       - run: yarn package
       - uses: ./
@@ -42,10 +42,10 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
-          node-version: '14.x'
-      - uses: actions/checkout@v2
+          node-version: '16.x'
+      - uses: actions/checkout@v3
       - run: yarn install --frozen-lockfile --ignore-optional
       - run: yarn package
       - uses: ./
@@ -59,10 +59,10 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
-          node-version: '14.x'
-      - uses: actions/checkout@v2
+          node-version: '16.x'
+      - uses: actions/checkout@v3
       - run: yarn install --frozen-lockfile --ignore-optional
       - run: yarn package
       - uses: ./
@@ -76,10 +76,10 @@ jobs:
         platform: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
-          node-version: '14.x'
-      - uses: actions/checkout@v2
+          node-version: '16.x'
+      - uses: actions/checkout@v3
       - run: yarn install --frozen-lockfile --ignore-optional
       - run: yarn package
       - uses: ./
