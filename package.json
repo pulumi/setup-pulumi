@@ -1,6 +1,6 @@
 {
   "name": "setup-pulumi",
-  "version": "0.0.0",
+  "version": "3.0.0",
   "private": true,
   "description": "Setup the Pulumi CLI in a GitHub Actions build environment",
   "main": "dist/index.js",
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@types/jest": "^26.0.22",
-    "@types/node": "^12.11.6",
+    "@types/node": "^16.11.65",
     "@types/semver": "^7.3.4",
     "@vercel/ncc": "^0.24.0",
     "jest": "^26.6.3",
