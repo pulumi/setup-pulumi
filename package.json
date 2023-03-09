@@ -5,7 +5,9 @@
   "description": "Setup the Pulumi CLI in a GitHub Actions build environment",
   "main": "dist/index.js",
   "scripts": {
-    "package": "ncc build src/main.ts -o dist --source-map --license LICENSE",
+    "package:setup-pulumi": "ncc build -o dist/setup-pulumi src/setup-pulumi.ts --source-map --license LICENSE",
+    "package:cache-save": "ncc build -o dist/cache-save src/cache-save.ts --source-map --license LICENSE",
+    "package": "yarn package:setup-pulumi && yarn package:cache-save",
     "test": "jest --coverage src/**/*"
   },
   "repository": {
@@ -15,6 +17,7 @@
   "author": "Pulumi Corporation",
   "license": "Apache-2.0",
   "dependencies": {
+    "@actions/cache": "^2.0.2",
     "@actions/core": "^1.2.6",
     "@actions/github": "^4.0.0",
     "@actions/io": "^1.1.0",
