@@ -8,7 +8,7 @@ Please use the [pulumi/actions](https://github.com/pulumi/actions) action
 in [installation only mode](https://github.com/pulumi/actions#installation-only).
 </td></tr></table>
 
-#### Migrating to pulumi/actons
+#### Migrating to pulumi/actions
 
 To migrate, switch to `pulumi/actions@v4`.
 
