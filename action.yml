@@ -11,8 +11,9 @@ inputs:
     required: true
     default: ${{ github.token }}
 branding:
-  icon: 'terminal'
-  color: 'purple'
+  icon: "terminal"
+  color: "purple"
 runs:
-  using: 'node12'
-  main: 'dist/index.js'
+  using: "node16"
+  main: "dist/setup-pulumi/index.js"
+  post: "dist/cache-save/index.js"
